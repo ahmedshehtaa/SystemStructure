@@ -1,0 +1,208 @@
+import dash
+from dash import dash_table,dcc,html
+from dash.dependencies import Output,Input,State
+import dash_bootstrap_components as dbc
+
+###########read from file ##############
+fileName="E:\MyFile.txt"
+file = open(fileName,"a")
+with open(fileName) as f:
+    lines = f.readlines()
+
+db={}
+for line in lines:
+    str2=''
+    str,str2=line.split(',')
+
+    str3=str2.replace('\n', '')
+    db[str] = str3
+
+
+########### users pages #############
+Users = html.Div([
+dash_table.DataTable(
+    id='table',
+    columns=[{'name':'user','id':'user'},
+             {'name':'password','id':'password'}
+             ],
+    data=[{'user':j,'password':db[j]}for j in db],
+    editable=False,
+    row_deletable=False
+)#,html.Button('Add Row', id='editing-rows-button', n_clicks=0)
+])
+
+RemoveUser=html.Div([
+
+    html.Div(
+             [dcc.Dropdown(id='dropdown', options=[{'label': i, 'value': db[i]} for i in db],value=['Select Email'],
+                          style={'width':'50%','position': 'responsive','float': 'left' }) ,
+             dcc.Input(id="pass", type="password", placeholder="Enter Password",
+                       style={'position': 'responsive'})]
+                 ),
+
+    html.Div(html.Button('Remove', id='button',
+                         style={'width': 100, 'height': 40,'margin-top':'40px','border-width':'0px','background-color':'#blue','float': 'left'})),
+    html.Div(id='message')
+
+],style={ })
+
+AddUser=html.Div([
+
+html.Div(
+dcc.Input(id="user",value='', type="text", placeholder="Enter Username",className="inputbox1",
+style={'margin-left':'15%','width':'450px','height':'45px','padding':'10px','margin-top':'60px',
+'font-size':'16px','border-width':'1px','border-color':'#a0a3a2'
+}),
+),
+html.Div(
+dcc.Input(id="password1",value='', type="password", placeholder="Enter Password",className="inputbox2",
+style={'margin-left':'15%','width':'450px','height':'45px','padding':'10px','margin-top':'5%',
+'font-size':'16px','border-width':'1px','border-color':'#a0a3a2',
+}),
+),
+html.Div(
+dcc.Input(id="password2",value='', type="password", placeholder="Confirm Password",className="inputbox3",
+style={'margin-left':'15%','width':'450px','height':'45px','padding':'10px','margin-top':'5%',
+'font-size':'16px','border-width':'1px','border-color':'#a0a3a2','position':'responsive'
+}),
+),
+html.Div(
+html.Button('Save', id='Save', n_clicks=0, style={'width': 100, 'height': 40,'margin-top':'30px','border-width':'0px','background-color':'#blue'}),
+style={'margin-left':'32%','padding-top':'30px'}),
+html.Div('',id='output1')
+])
+
+
+
+app = dash.Dash(__name__,suppress_callback_exceptions=True,external_stylesheets=[dbc.themes.LITERA])
+
+
+
+########## TOP BAR #########
+TopBarStyle = {
+    "position": "fixed",
+    "top": 0,
+    "left": 0,
+    "right": 0,
+    "hight": "3rem",
+    "padding": "1rem .5rem",
+    "background-color": "#f8f9fa",
+}
+TopBar = html.Div([
+        html.Div("TATBEEK",style={'font-size':'30px','color':'lightblue','float':'left'}),
+        #html.Hr(),
+        dbc.Nav(
+            [
+                dbc.NavLink("Dashboard", href="/MainPage", active="exact",
+                            style={'width':'10%','height':'10%','margin-left':'75%','color':'black'}),
+                dbc.NavLink("UsersManager", href="/UsersManager", active="exact",
+                            style={'width':'10%','height':'10%','margin-left':'1%','color':'black'})
+            ],
+            horizontal=True,
+            pills =True,
+        ),
+        ],style=TopBarStyle)
+#############SIDEBAR #############
+SIDEBAR_STYLE = {
+    "position": "fixed",
+    "top": '5rem',
+    "left": 0,
+    "bottom": 0,
+    "width": "10rem",
+    "padding": "2rem 1rem",
+    "background-color": "#f8f9fa",
+}
+sidebar = html.Div([
+        #html.Div("TATBEEK", className="display-4",style={'font-size':'40px','color':'lightblue'}),
+        #html.Hr(),
+        dbc.Nav(
+            [
+                dbc.NavLink("Users", href="UsersManager/Users", active="exact"),
+                dbc.NavLink("Add User", href="UsersManager/AddUser", active="exact"),
+                dbc.NavLink("Remove User", href="UsersManager/RemoveUser", active="exact"),
+
+            ],
+            vertical=True,
+            pills=True,
+        ),
+        ],style=SIDEBAR_STYLE )
+
+############# users CONTENT layer #############
+UserPageContentStyle = {
+    "margin-left": "18rem",
+    "margin-right": "2rem",
+    "padding": "2rem 1rem",
+}
+UsersContent = html.Div(id="User-page-content", children=[], style=UserPageContentStyle)
+
+#############users layer #############
+UsersManager=html.Div([
+    dcc.Location(id="users-url"),
+    sidebar,UsersContent,
+])
+
+########### SYSTEM-CONTENT  ############
+ContentStyle = {
+    "margin-top": "7rem",
+    "margin-bottom": "2rem",
+    "padding": "2rem 1rem",
+}
+MainPage=html.Div([
+         dcc.Graph(id='bar',figure={
+        'data': [
+            {'x': [1,2,3], 'y': [3,2,3], 'type': 'bar', 'name': 'SF'},
+
+        ],
+        'layout': {
+            'title': 'Dash Data Visualization'
+        }
+        },style={'font-size': '11px','text-align':'center'}
+                    )])
+MainContent = html.Div(id="Main-page-content", children=[MainPage], style=ContentStyle)
+
+
+########### LAYOUT ##########
+app.layout =html.Div([
+    dcc.Location(id="url"),TopBar,MainContent,
+])
+
+@app.callback(
+    Output("Main-page-content", "children"),
+    [Input("url", "pathname")]
+)
+def  render_page_content(pathname):
+    if pathname == "/":
+        return [
+            MainPage
+        ]
+    elif pathname == "/MainPage":
+        return [
+            MainPage
+        ]
+    elif pathname == "/UsersManager":
+
+        return [
+            UsersManager
+        ]
+
+@app.callback(
+    Output("User-page-content", "children"),
+    [Input("users-url", "pathname")]
+)
+def  render_users_page_content(pathname):
+    if pathname == "/Users":
+        return [
+            Users
+        ]
+    elif pathname == "/AddUser":
+        return [
+            AddUser
+        ]
+    elif pathname == "/RemoveUser":
+        return [
+            RemoveUser
+        ]
+
+if __name__ == '__main__':
+    app.run_server(debug=True)
+
