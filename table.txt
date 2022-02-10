@@ -173,16 +173,24 @@ def add_user(n_clicks,name,passw1,passw2):
             if BoolChecker == True:
                 if passw1 == '' or passw1 == None or passw2 == '' or passw2 == None:
                     return html.Div('Please Enter Password')
-                if passw1 == passw2:
 
-                    new_df = pd.DataFrame({'Email': name, 'Password':[passw1]})
-                    df_combined = pd.concat([df, new_df], axis=0)
-                    df.reset_index().drop(["index"], axis=1)
-                    df_combined.to_csv(FileName, index=False)
+                total = 0
+                for character in passw1:
+                    total += 1
+                if total <6 :
+                    return html.Div('password must be more than 6 character')
+                else :
 
-                    return html.Div('Successfully Added')
-                if passw1 != passw2:
-                    return html.Div('Passwords Are Not The Same')
+                    if passw1 == passw2:
+                        new_df = pd.DataFrame({'Email': name, 'Password': [passw1]})
+                        df_combined = pd.concat([df, new_df], axis=0)
+                        df.reset_index().drop(["index"], axis=1)
+                        df_combined.to_csv(FileName, index=False)
+
+                        return html.Div('Successfully Added')
+                    if passw1 != passw2:
+                        return html.Div('Passwords Are Not The Same')
+
             else:
                 return html.Div('User Name Already in use')
 
