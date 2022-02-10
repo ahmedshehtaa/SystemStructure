@@ -1,10 +1,10 @@
-import dash
-from dash import dash_table,dcc,html
+iimport dash
+from dash import dash_table,dcc,html,callback_context
 from dash.dependencies import Output,Input,State
 import dash_bootstrap_components as dbc
 
 ###########read from file ##############
-fileName="E:\MyFile.txt"
+fileName="MyFile.txt"
 file = open(fileName,"a")
 with open(fileName) as f:
     lines = f.readlines()
@@ -29,7 +29,7 @@ dash_table.DataTable(
     editable=False,
     row_deletable=False
 )#,html.Button('Add Row', id='editing-rows-button', n_clicks=0)
-])
+],style={'padding-left':'10%','padding-right':'15%'})
 
 RemoveUser=html.Div([
 
@@ -115,29 +115,30 @@ SIDEBAR_STYLE = {
 sidebar = html.Div([
         #html.Div("TATBEEK", className="display-4",style={'font-size':'40px','color':'lightblue'}),
         #html.Hr(),
-        dbc.Nav(
-            [
-                dbc.NavLink("Users", href="UsersManager/Users", active="exact"),
-                dbc.NavLink("Add User", href="UsersManager/AddUser", active="exact"),
-                dbc.NavLink("Remove User", href="UsersManager/RemoveUser", active="exact"),
+      html.Button('Users', id='UsersButton',autoFocus=True,
+                  style={'width': 100, 'height': '40','border-width':'0px','background-color':'#f8f9fa'}),
 
-            ],
-            vertical=True,
-            pills=True,
-        ),
+      html.Button('AddUser', id='AddUserButton',
+                  style={'width': 100, 'height': '40','border-width':'0px','background-color':'#f8f9fa','margin-top':'20px'}),
+
+    html.Button('RemoveUser', id='RemoveUserButton',
+                  style={'width': 100, 'height': '40','border-width':'0px','background-color':'#f8f9fa','margin-top':'20px'})
+
+
         ],style=SIDEBAR_STYLE )
 
 ############# users CONTENT layer #############
 UserPageContentStyle = {
-    "margin-left": "18rem",
-    "margin-right": "2rem",
+     #"margin-top": "2rem",
+    "margin-left": "10rem",
+    #"margin-right": "2rem",
     "padding": "2rem 1rem",
 }
 UsersContent = html.Div(id="User-page-content", children=[], style=UserPageContentStyle)
 
 #############users layer #############
 UsersManager=html.Div([
-    dcc.Location(id="users-url"),
+    dcc.Location(id="users-url",refresh=False),
     sidebar,UsersContent,
 ])
 
@@ -163,7 +164,7 @@ MainContent = html.Div(id="Main-page-content", children=[MainPage], style=Conten
 
 ########### LAYOUT ##########
 app.layout =html.Div([
-    dcc.Location(id="url"),TopBar,MainContent,
+    dcc.Location(id="url",refresh=False),TopBar,MainContent,
 ])
 
 @app.callback(
@@ -180,28 +181,47 @@ def  render_page_content(pathname):
             MainPage
         ]
     elif pathname == "/UsersManager":
-
         return [
             UsersManager
         ]
-
+"""""
 @app.callback(
     Output("User-page-content", "children"),
     [Input("users-url", "pathname")]
 )
 def  render_users_page_content(pathname):
-    if pathname == "/Users":
+    if pathname == "/UsersManager":
         return [
             Users
         ]
-    elif pathname == "/AddUser":
+    elif pathname == "/UsersManager/AddUser":
         return [
             AddUser
         ]
-    elif pathname == "/RemoveUser":
+    elif pathname == "/UsersManager/RemoveUser":
         return [
             RemoveUser
         ]
+"""
+@app.callback(
+    Output("User-page-content", "children"),
+    [Input("UsersButton", "n_clicks"),Input("AddUserButton", "n_clicks"),Input("RemoveUserButton", "n_clicks")]
+)
+def  users_page_content(btn1, btn2, btn3):
+    layer=Users
+    changed_id = [p['prop_id'] for p in callback_context.triggered][0]
+    if 'UsersButton' in changed_id:
+        layer=Users
+    elif 'AddUserButton' in changed_id:
+        layer=AddUser
+    elif 'RemoveUserButton' in changed_id:
+        layer=RemoveUser
+    else:
+        layer=Users
+
+    return layer
+
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
