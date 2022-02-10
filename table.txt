@@ -5,7 +5,10 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 from dash.exceptions import PreventUpdate
 ###########read from file ##############
-fileName="E:\MyFile.txt"
+FileName='C:/Users/TIEC/Documents/df.csv'
+df=pd.read_csv(FileName)
+
+fileName="MyFile.txt"
 file = open(fileName,"a")
 with open(fileName) as f:
     lines = f.readlines()
@@ -35,10 +38,8 @@ Users = html.Div([
 
 dash_table.DataTable(
     id='table',
-    columns=[{'name':'user','id':'user'},
-             {'name':'password','id':'password'}
-             ],
-    data=[{'user':j,'password':db[j]}for j in db],
+    columns= [{"name": i, "id": i} for i in df.columns],
+    data=df.to_dict('records'),
     editable=True,
     row_deletable=False
 ),html.Button('updata', id='updata',hidden=True, n_clicks=0),
@@ -47,7 +48,7 @@ dash_table.DataTable(
 RemoveUser=html.Div([
 
     html.Div(
-             [dcc.Dropdown(id='dropdown', options=[{'label': i, 'value': i} for i in db],
+             [dcc.Dropdown(id='dropdown', options=[{'label': i, 'value': i} for i in df['Email']],
                           style={'width':'50%','position': 'responsive','float': 'left' }) ,
              dcc.Input(id="remove_password", type="text", placeholder="Enter Password",
                        style={'position': 'responsive'})]
@@ -165,7 +166,7 @@ def add_user(n_clicks,name,passw1,passw2):
 
         if name != '' or name != None:
             BoolChecker = True
-            for i in db:
+            for i in df['Email']:
                 if i == name:
                     BoolChecker = False
 
@@ -173,9 +174,11 @@ def add_user(n_clicks,name,passw1,passw2):
                 if passw1 == '' or passw1 == None or passw2 == '' or passw2 == None:
                     return html.Div('Please Enter Password')
                 if passw1 == passw2:
-                    myfile = open("E:\MyFile.txt", "a")
-                    myfile.writelines(name + ',' + passw1 + '\n')
 
+                    new_df = pd.DataFrame({'Email': name, 'Password':[passw1]})
+                    df_combined = pd.concat([df, new_df], axis=0)
+                    df.reset_index().drop(["index"], axis=1)
+                    df_combined.to_csv(FileName, index=False)
 
                     return html.Div('Successfully Added')
                 if passw1 != passw2:
@@ -185,7 +188,7 @@ def add_user(n_clicks,name,passw1,passw2):
 
 
 
-
+"""
 @app.callback(
     Output('table', 'data'),
     Input('updata', 'n_clicks'),
@@ -194,7 +197,7 @@ def UpdateTable(n_clicks):
     if n_clicks is None:
         raise PreventUpdate
     else :
-        fileName = "E:\MyFile.txt"
+        fileName = "MyFile.txt"
         file = open(fileName, "a")
         with open(fileName) as f:
             lines = f.readlines()
@@ -209,7 +212,7 @@ def UpdateTable(n_clicks):
             d=[{'user':j,'password':db2[j]}for j in db2]
 
         return d
-
+"""
 
 @app.callback(
     Output('remove_message', 'children'),
