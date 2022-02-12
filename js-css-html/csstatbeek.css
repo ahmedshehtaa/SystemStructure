@@ -1,0 +1,25 @@
+nav
+{
+background-color:#a0c0d0;
+}
+
+a:hover
+{
+color: white;
+}
+a
+{
+text-decoration: none;
+}
+
+#linkTable{
+margin-left:70%;
+padding-top:1%;
+padding-bottom:1%;
+}
+
+#contentpage
+{
+background-color:green;
+height:100%;
+}
