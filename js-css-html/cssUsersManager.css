@@ -1,0 +1,57 @@
+#sidebar{
+position:fixed;
+top:4.5rem;
+left:.5%;
+bottom:0;
+width:7%;
+background-color:#f8f9fa;
+}
+
+a:hover
+{
+color: white;
+}
+a
+{
+text-decoration: none;
+}
+
+#UsersContent{
+position:fixed;
+width:91.4%;
+top:4.5rem;
+left:8%;
+bottom:0;
+background-color:lightgreen;
+}
+
+#navig
+{
+background-color:#a0c0d0;
+}
+
+#UsersManager{
+}
+#linkTable{
+margin-left:70%;
+padding-top:1%;
+padding-bottom:1%;
+}
+#userlinks{
+margin-top:0;
+}
+
+button{
+width: 100%;
+color: white;
+padding: 5px 0px 5px 5px;
+margin: 5px 0;
+border: none;
+border-radius: 4px;
+}
+
+button:hover
+{
+background-color: #45a049;
+cursor: pointer;
+}
