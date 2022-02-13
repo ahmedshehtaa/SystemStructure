@@ -2,77 +2,87 @@ import dash
 from dash import dash_table,dcc,html,callback_context
 from dash.dependencies import Output,Input,State
 import dash_bootstrap_components as dbc
-
+from dash.exceptions import PreventUpdate
 ###########read from file ##############
-fileName="MyFile.txt"
-file = open(fileName,"a")
-with open(fileName) as f:
-    lines = f.readlines()
-
-db={}
-for line in lines:
-    str2=''
-    str,str2=line.split(',')
-
-    str3=str2.replace('\n', '')
-    db[str] = str3
-
-
+import xml.etree.ElementTree as ET
+import xml
+from xml.etree import ElementTree
+tree = ET.parse('GFG.xml')
+root = tree.getroot()
 ########### users pages #############
 Users = html.Div([
 dash_table.DataTable(
     id='table',
-    columns=[{'name':'user','id':'user'},
-             {'name':'password','id':'password'}
+    columns=[{'name':'Email','id':'Email'},
+             {'name':'Password','id':'Password'}
              ],
-    data=[{'user':j,'password':db[j]}for j in db],
+    data=[{'Email':Person.find('E').text,'Password':Person.find('P').text}for Person in root.findall('Person')],
     editable=False,
     row_deletable=False
-)#,html.Button('Add Row', id='editing-rows-button', n_clicks=0)
+),html.Button('updata', id='updata',hidden=True, n_clicks=0)
 ],style={'padding-left':'10%','padding-right':'15%'})
 
 RemoveUser=html.Div([
 
     html.Div(
-             [dcc.Dropdown(id='dropdown', options=[{'label': i, 'value': db[i]} for i in db],value=['Select Email'],
-                          style={'width':'50%','position': 'responsive','float': 'left' }) ,
-             dcc.Input(id="pass", type="password", placeholder="Enter Password",
+             [dcc.Dropdown(id='dropdown', options=[{'label': Person.find('E').text, 'value': Person.find('E').text} for Person in root.findall('Person')],value=['Select Email'],
+                          style={'width':'60%','position': 'responsive','float': 'left' }) ,
+             dcc.Input(id="remove_password", type="password", placeholder="Enter Password",
                        style={'position': 'responsive'})]
                  ),
 
     html.Div(html.Button('Remove', id='button',
-                         style={'width': 100, 'height': 40,'margin-top':'40px','border-width':'0px','background-color':'#blue','float': 'left'})),
-    html.Div(id='message')
+                         style={'width': 100, 'height': 40,'margin-top':'3%','margin-left':'4.5%','border-width':'0px','background-color':'#blue','float': 'left'})),
+    html.Div(id='remove_message'),html.Button('updataDropDown', id='updataDropDown',hidden=True, n_clicks=0)
 
 ],style={ })
 
+UserInputStyle={'margin-left':'30%','width':'30%','height':'4%','padding':'10px','margin-top':'4%',
+'font-size':'16px','border-width':'1px','border-color':'#a0a3a2'
+}
 AddUser=html.Div([
 
 html.Div(
 dcc.Input(id="user",value='', type="text", placeholder="Enter Username",className="inputbox1",
-style={'margin-left':'15%','width':'450px','height':'45px','padding':'10px','margin-top':'60px',
-'font-size':'16px','border-width':'1px','border-color':'#a0a3a2'
-}),
+style=UserInputStyle),
 ),
 html.Div(
 dcc.Input(id="password1",value='', type="password", placeholder="Enter Password",className="inputbox2",
-style={'margin-left':'15%','width':'450px','height':'45px','padding':'10px','margin-top':'5%',
-'font-size':'16px','border-width':'1px','border-color':'#a0a3a2',
-}),
+style=UserInputStyle),
 ),
 html.Div(
 dcc.Input(id="password2",value='', type="password", placeholder="Confirm Password",className="inputbox3",
-style={'margin-left':'15%','width':'450px','height':'45px','padding':'10px','margin-top':'5%',
-'font-size':'16px','border-width':'1px','border-color':'#a0a3a2','position':'responsive'
-}),
+style=UserInputStyle),
 ),
+html.Div('',id='output1',style={'margin-left':'40%','margin-top':'1%'}),
 html.Div(
-html.Button('Save', id='Save', n_clicks=0, style={'width': 100, 'height': 40,'margin-top':'30px','border-width':'0px','background-color':'#blue'}),
-style={'margin-left':'32%','padding-top':'30px'}),
-html.Div('',id='output1')
+html.Button('Save', id='Save', n_clicks=0, style={'width': 100, 'height': 40,'margin-top':'3%','border-width':'0px','background-color':'#blue'}),
+style={'margin-left':'40%','padding-top':'30px'}),
+
 ])
 
+PasswordInputStyle={
+    'align':'auto',
+    'margin-top':'4%',
+    'width':'30%',
+    'height':'35px','padding':'10px','margin-right':'40%','margin-left':'25%'}
+ResetPassword=html.Div([
+    dcc.Dropdown(id='ResetDrop', options=[{'label': Person.find('E').text, 'value': Person.find('E').text} for Person in root.findall('Person')],
+              style={'width':'55%','margin-top':0,'margin-right':'50%','margin-left':'16%' }),
 
+      dcc.Input(id="OldPassword", type="text", placeholder="Enter Old Password",
+               style=PasswordInputStyle),
+      dcc.Input(id="ConfirmPassword_1", type="text", placeholder="Enter New Password",
+               style=PasswordInputStyle),
+      dcc.Input(id="ConfirmPassword_2", type="text", placeholder="Confirm New Password",
+               style=PasswordInputStyle),
+    html.Div('',id='ResetOutput',style={'margin-left':'40%','margin-top':'1%'}),
+    html.Div(html.Button('Reset', id='ResetPassword',
+      style={'width': 100, 'height': 40,'margin-top':'8%','margin-left':'25%','margin-right':'56%','border-width':'0px','background-color':'#blue','float': 'right'})
+             ),html.Button('updataReset', id='updataReset',hidden=True, n_clicks=0)
+
+
+])
 
 app = dash.Dash(__name__,suppress_callback_exceptions=True,external_stylesheets=[dbc.themes.LITERA])
 
@@ -86,7 +96,7 @@ TopBarStyle = {
     "right": 0,
     "hight": "3rem",
     "padding": "1rem .5rem",
-    "background-color": "#f8f9fa",
+    "background-color": "#83FFE6",
 }
 TopBar = html.Div([
         html.Div("TATBEEK",style={'font-size':'30px','color':'lightblue','float':'left'}),
@@ -108,39 +118,59 @@ SIDEBAR_STYLE = {
     "top": '5rem',
     "left": 0,
     "bottom": 0,
-    "width": "10rem",
-    "padding": "2rem 1rem",
-    "background-color": "#f8f9fa",
+    "width": "8rem",
+    "padding": "2rem 0rem",
+    "background-color": "#2C2C2C",
 }
+
+buttonStyle={
+    'width': "8rem",
+    'height': '40',
+    'border-width':'0px',
+    'color':'white',
+    'background-color':'#2C2C2C',
+    'margin-top':'20px',
+    'margin-left':'0px'}
 sidebar = html.Div([
         #html.Div("TATBEEK", className="display-4",style={'font-size':'40px','color':'lightblue'}),
         #html.Hr(),
       html.Button('Users', id='UsersButton',autoFocus=True,
-                  style={'width': 100, 'height': '40','border-width':'0px','background-color':'#f8f9fa'}),
+                  style={'width': "7rem",'height': '40','border-width':'0px','background-color':'#2C2C2C',
+    'margin-top':'5px','color':'white',
+    'margin-left':'0px'}),
 
       html.Button('AddUser', id='AddUserButton',
-                  style={'width': 100, 'height': '40','border-width':'0px','background-color':'#f8f9fa','margin-top':'20px'}),
+                  style=buttonStyle),
 
-    html.Button('RemoveUser', id='RemoveUserButton',
-                  style={'width': 100, 'height': '40','border-width':'0px','background-color':'#f8f9fa','margin-top':'20px'})
+      html.Button('RemoveUser', id='RemoveUserButton',
+                  style=buttonStyle),
+      html.Button('ResetPassword', id='ResetPasswordButton',
+                  style=buttonStyle)
 
 
         ],style=SIDEBAR_STYLE )
 
 ############# users CONTENT layer #############
 UserPageContentStyle = {
+    "position": "fixed",
+    "top": '5rem',
+    "left":"8.2rem",
+    "bottom": 0,
+    "right":0,
      #"margin-top": "2rem",
-    "margin-left": "10rem",
+    #"margin-left": "12rem",
     #"margin-right": "2rem",
-    "padding": "2rem 1rem",
+    "padding":"2rem 1rem",
+    'background-color':'#FCFCFC'
 }
 UsersContent = html.Div(id="User-page-content", children=[], style=UserPageContentStyle)
 
 #############users layer #############
+UsersManagerStyle={}
 UsersManager=html.Div([
     dcc.Location(id="users-url",refresh=False),
     sidebar,UsersContent,
-])
+],style=UsersManagerStyle)
 
 ########### SYSTEM-CONTENT  ############
 ContentStyle = {
@@ -184,30 +214,12 @@ def  render_page_content(pathname):
         return [
             UsersManager
         ]
-"""""
+
 @app.callback(
     Output("User-page-content", "children"),
-    [Input("users-url", "pathname")]
+    [Input("UsersButton", "n_clicks"),Input("AddUserButton", "n_clicks"),Input("RemoveUserButton", "n_clicks"),Input("ResetPasswordButton", "n_clicks")]
 )
-def  render_users_page_content(pathname):
-    if pathname == "/UsersManager":
-        return [
-            Users
-        ]
-    elif pathname == "/UsersManager/AddUser":
-        return [
-            AddUser
-        ]
-    elif pathname == "/UsersManager/RemoveUser":
-        return [
-            RemoveUser
-        ]
-"""
-@app.callback(
-    Output("User-page-content", "children"),
-    [Input("UsersButton", "n_clicks"),Input("AddUserButton", "n_clicks"),Input("RemoveUserButton", "n_clicks")]
-)
-def  users_page_content(btn1, btn2, btn3):
+def  users_page_content(btn1, btn2, btn3,btn4):
     layer=Users
     changed_id = [p['prop_id'] for p in callback_context.triggered][0]
     if 'UsersButton' in changed_id:
@@ -216,13 +228,200 @@ def  users_page_content(btn1, btn2, btn3):
         layer=AddUser
     elif 'RemoveUserButton' in changed_id:
         layer=RemoveUser
+    elif 'ResetPasswordButton' in changed_id:
+        layer=ResetPassword
     else:
         layer=Users
 
     return layer
 
+@app.callback(
+    Output('output1', 'children'),
+
+    Input('Save', 'n_clicks'),
+
+    State('user', 'value'),
+    State('password1', 'value'),
+    State('password2', 'value'),
+)
+def add_user(n_clicks,name,passw1,passw2):
+    if n_clicks is None:
+        raise PreventUpdate
+    else :
+        if name == '' or name == None:
+            return html.Div('')
+
+        if name != '' or name != None:
+            existingChecker = True
+            tree = ET.parse('GFG.xml')
+            root = tree.getroot()
+            for Person in root.findall('Person'):
+                Email = Person.find('E').text
+                if Email == name:
+                    existingChecker = False
+
+            if existingChecker == True:
+                if passw1 == '' or passw1 == None or passw2 == '' or passw2 == None:
+                    return html.Div('Please Enter Password',style={'color':'lightblue'})
+
+                total = 0
+                for character in passw1:
+                    total += 1
+                if total < 6:
+                    return html.Div('password must be more than 6 character',style={'color':'red'})
+                else:
+                    if passw1 == passw2:
+                        tree = ET.parse('GFG.xml')
+                        root = tree.getroot()
+
+                        Person = ElementTree.Element("Person")
+
+                        E = ElementTree.SubElement(Person, "E")
+                        E.text = name
+                        E.set("type", "Email")
+
+                        P = ElementTree.SubElement(Person, "P")
+                        P.text = passw1
+                        P.set("type", "Password")
+
+                        root.append(Person)
+
+                        tree.write('GFG.xml')
+
+                        return html.Div('Successfully Added',style={'color':'lightgreen'})
+
+                    if passw1 != passw2:
+                        return html.Div('Passwords Are Not The Same',style={'color':'red'})
+
+            else:
+                return html.Div('User Email Already in use',style={'color':'red'})
+
+@app.callback(
+    Output('ResetOutput', 'children'),
+
+    Input('ResetPassword', 'n_clicks'),
+
+    State('ResetDrop', 'value'),
+    State('OldPassword', 'value'),
+    State('ConfirmPassword_1', 'value'),
+    State('ConfirmPassword_2', 'value'),
+)
+def Reset_user(n_clicks,email,passwo,passwo1,passwo2):
+
+    if n_clicks is None:
+        raise PreventUpdate
+    else:
+        existingChecker = False
+        tree = ET.parse('GFG.xml')
+        root = tree.getroot()
+        for Person in root.findall('Person'):
+            Email = Person.find('E').text
+            if Email == email:
+                if passwo==Person.find('P').text :
+                    existingChecker = True
+
+        if existingChecker == False:
+            return html.Div('Wrong Password', style={'color': 'red'})
+        else :
+            if passwo == '' or passwo == None :
+                 return html.Div('Please Enter Password', style={'color': 'lightblue'})
+            if passwo1 == '' or passwo1 == None or passwo2 == '' or passwo2 == None :
+                return html.Div('Please Enter Confirm Password', style={'color': 'lightblue'})
+            total = 0
+            for character in passwo1:
+                total += 1
+            if total < 6:
+                return html.Div('password must be more than 6 character', style={'color': 'red'})
+            else:
+                if passwo1 != passwo2:
+                    return html.Div('Confirmed Passwords Are Not The Same', style={'color': 'red'})
+                else:
+                    for Person in root.findall('Person'):
+                        Email = Person.find('E').text
+                        if Email == email:
+                            for child in Person:
+                                if child.tag == 'P':
+                                    child.text = passwo1
+
+                            #elem2 = ET.SubElement(Person, 'P')
+                            #elem2.text = passwo1
+
+                    tree.write('GFG.xml')
+                    return html.Div('Password Has Been Reset', style={'color': 'lightgreen'})
 
 
+
+
+
+@app.callback(
+    Output('remove_message', 'children'),
+    Input('button', 'n_clicks'),
+    State('dropdown', 'value'),
+    State('remove_password', 'value'),
+)
+def remove_user(n_clicks,user2,passw3):
+    if n_clicks is None:
+        raise PreventUpdate
+    else:
+        if user2 is not None or user2 =='' :
+            tree = ET.parse('GFG.xml')
+            root = tree.getroot()
+
+            p=''
+            for Person in root.findall('Person'):
+                Email = Person.find('E').text
+                if Email==user2:
+                  p=Person.find('P').text
+
+
+            if p == passw3:
+
+                for Person in root.findall('Person'):
+                    E = Person.find('E').text
+                    if E == user2:
+                        root.remove(Person)
+                tree.write('GFG.xml')
+                st=user2+"  Sucessful Removed"
+
+                return html.Div(st,style={'color':'lightgreen'})
+
+            else :
+                return html.Div('wrong password',style={'color':'red'})
+        else :
+            return html.Div('')
+
+
+@app.callback(
+    Output('table', 'data'),
+    Input('updata', 'n_clicks'),
+)
+def UpdateTable(n_clicks):
+    if n_clicks is None:
+        raise PreventUpdate
+    else :
+        tree = ET.parse('GFG.xml')
+        root = tree.getroot()
+        d=[{'Email':Person.find('E').text,'Password':Person.find('P').text}for Person in root.findall('Person')]
+        return d
+
+@app.callback(
+    Output('dropdown', 'options'),
+    Input('updataDropDown', 'n_clicks'),
+)
+def UpdateDropDown(n_clicks):
+    tree = ET.parse('GFG.xml')
+    root = tree.getroot()
+    d=[{'label': Person.find('E').text, 'value': Person.find('E').text} for Person in root.findall('Person')]
+    return d
+
+@app.callback(
+    Output('ResetDrop', 'options'),
+    Input('updataReset', 'n_clicks'),
+)
+def UpdateDropDown(n_clicks):
+    tree = ET.parse('GFG.xml')
+    root = tree.getroot()
+    d=[{'label': Person.find('E').text, 'value': Person.find('E').text} for Person in root.findall('Person')]
+    return d
 if __name__ == '__main__':
     app.run_server(debug=True)
-
